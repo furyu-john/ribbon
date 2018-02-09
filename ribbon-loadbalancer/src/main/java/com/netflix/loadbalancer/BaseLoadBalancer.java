@@ -17,8 +17,6 @@
  */
 package com.netflix.loadbalancer;
 
-import static java.util.Collections.singleton;
-
 import com.google.common.collect.ImmutableList;
 import com.netflix.client.ClientFactory;
 import com.netflix.client.IClientConfigAware;
@@ -31,7 +29,6 @@ import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Counter;
 import com.netflix.servo.monitor.Monitors;
 import com.netflix.util.concurrent.ShutdownEnabledTimer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static java.util.Collections.singleton;
 
 /**
  * A basic implementation of the load balancer where an arbitrary list of
@@ -499,7 +498,13 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
                 listChanged = true;
                 if (changeListeners != null && changeListeners.size() > 0) {
                    List<Server> oldList = ImmutableList.copyOf(allServerList);
-                   List<Server> newList = ImmutableList.copyOf(allServers);                   
+                   List<Server> newList = ImmutableList.copyOf(allServers);
+                    for (Server s: oldList) {
+                        logger.debug("old server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+                    }
+                    for (Server s: newList) {
+                        logger.debug("new server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+                    }
                    for (ServerListChangeListener l: changeListeners) {
                        try {
                            l.serverListChanged(oldList, newList);
@@ -507,6 +512,14 @@ public class BaseLoadBalancer extends AbstractLoadBalancer implements
                            logger.error("LoadBalancer [{}]: Error invoking server list change listener", name, e);
                        }
                    }
+                }
+            } else  {
+                logger.debug("all server list is equal.");
+                for (Server s: allServers) {
+                    logger.debug("get server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+                }
+                for (Server s: allServerList) {
+                    logger.debug("all server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
                 }
             }
             if (isEnablePrimingConnections()) {

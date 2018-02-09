@@ -17,9 +17,6 @@
 */
 package com.netflix.niws.loadbalancer;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.client.config.CommonClientConfigKey;
@@ -35,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The server list class that fetches the server information from Eureka client. ServerList is used by
@@ -69,6 +68,8 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
     @Deprecated
     public DiscoveryEnabledNIWSServerList() {
         this.eurekaClientProvider = new LegacyEurekaClientProvider();
+        logger.debug("@deprecated eureka provider is {{}}", eurekaClientProvider);
+//        logger.debug("@deprecated eureka client is {{}}", eurekaClientProvider.get().getClass());
     }
 
     /**
@@ -96,6 +97,8 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
     }
 
     public DiscoveryEnabledNIWSServerList(IClientConfig clientConfig, Provider<EurekaClient> eurekaClientProvider) {
+        logger.debug("eureka provider is {{}}", eurekaClientProvider);
+//        logger.debug("eureka client is {{}}", eurekaClientProvider.get().getClass());
         this.eurekaClientProvider = eurekaClientProvider;
         initWithNiwsConfig(clientConfig);
     }
@@ -104,6 +107,7 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
     public void initWithNiwsConfig(IClientConfig clientConfig) {
         clientName = clientConfig.getClientName();
         vipAddresses = clientConfig.resolveDeploymentContextbasedVipAddresses();
+        logger.debug("clientConfig is {{}}. clientName is {{}}. vipAddresses is {{}}", clientConfig, clientName, vipAddresses);
         if (vipAddresses == null &&
                 ConfigurationManager.getConfigInstance().getBoolean("DiscoveryEnabledNIWSServerList.failFastOnNullVip", true)) {
             throw new NullPointerException("VIP address for client " + clientName + " is null");
@@ -161,11 +165,18 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
         }
 
         EurekaClient eurekaClient = eurekaClientProvider.get();
+        logger.debug("eureka Client is {{}}", eurekaClientProvider);
+        logger.debug("eureka Client is {{}}", eurekaClient.getApplications().getRegisteredApplications());
         if (vipAddresses!=null){
             for (String vipAddress : vipAddresses.split(",")) {
                 // if targetRegion is null, it will be interpreted as the same region of client
+
+                logger.debug("change before applications {{}}", eurekaClient.getApplications().getRegisteredApplications());
                 List<InstanceInfo> listOfInstanceInfo = eurekaClient.getInstancesByVipAddress(vipAddress, isSecure, targetRegion);
+                logger.debug("change after applications {{}}", eurekaClient.getApplications().getRegisteredApplications());
+
                 for (InstanceInfo ii : listOfInstanceInfo) {
+                    logger.debug("get Instance Info: {{}}:{{}}", ii.getIPAddr(), ii.getPort());
                     if (ii.getStatus().equals(InstanceStatus.UP)) {
 
                         if(shouldUseOverridePort){

@@ -155,6 +155,10 @@ public class DynamicServerListLoadBalancer<T extends Server> extends BaseLoadBal
     public void setServersList(List lsrv) {
         super.setServersList(lsrv);
         List<T> serverList = (List<T>) lsrv;
+        for (T s: serverList) {
+            LOGGER.debug("new server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+        }
+
         Map<String, List<Server>> serversInZones = new HashMap<String, List<Server>>();
         for (Server server : serverList) {
             // make sure ServerStats is created to avoid creating them on hot
@@ -257,12 +261,14 @@ public class DynamicServerListLoadBalancer<T extends Server> extends BaseLoadBal
      */
     protected void updateAllServerList(List<T> ls) {
         // other threads might be doing this - in which case, we pass
+        LOGGER.debug("update AllServerList");
         if (serverListUpdateInProgress.compareAndSet(false, true)) {
             try {
                 for (T s : ls) {
                     s.setAlive(true); // set so that clients can start using these
                                       // servers right away instead
                                       // of having to wait out the ping cycle.
+                    LOGGER.debug("set state Alive {{}}:{{}}", s.getHost(), s.getPort());
                 }
                 setServersList(ls);
                 super.forceQuickPing();

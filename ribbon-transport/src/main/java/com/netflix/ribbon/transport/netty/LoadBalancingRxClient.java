@@ -196,6 +196,13 @@ public abstract class LoadBalancingRxClient<I, O, T extends RxClient<I, O>> impl
         ((BaseLoadBalancer) lbContext.getLoadBalancer()).addServerListChangeListener(new ServerListChangeListener() {
             @Override
             public void serverListChanged(List<Server> oldList, List<Server> newList) {
+                for (Server s: oldList) {
+                    logger.debug("old server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+                }
+                for (Server s: newList) {
+                    logger.debug("new server is {{}}:{{}}, id is {{}}", s.getHost(), s.getPort(), s.getId());
+                }
+
                 Set<Server> removedServers = new HashSet<Server>(oldList);
                 removedServers.removeAll(newList);
                 for (Server server: rxClientCache.keySet()) {

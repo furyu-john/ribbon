@@ -24,7 +24,8 @@ import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.AbstractLoadBalancerPing;
 import com.netflix.loadbalancer.BaseLoadBalancer;
 import com.netflix.loadbalancer.Server;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -34,8 +35,9 @@ import com.netflix.loadbalancer.Server;
  *
  */
 public class NIWSDiscoveryPing extends AbstractLoadBalancerPing {
-	        
-		BaseLoadBalancer lb = null; 
+		private static final Logger logger = LoggerFactory.getLogger(NIWSDiscoveryPing.class);
+
+		BaseLoadBalancer lb = null;
 		
 
 		public NIWSDiscoveryPing() {
@@ -54,16 +56,24 @@ public class NIWSDiscoveryPing extends AbstractLoadBalancerPing {
 		}
 
 		public boolean isAlive(Server server) {
-		    boolean isAlive = true;
+		    boolean isAlive = false;
+			if (server != null) {
+				logger.debug("check ping to {{}}:{{}}", server.getHost(), server.getPort());
+			} else {
+				logger.debug("server is null!");
+			}
 		    if (server!=null && server instanceof DiscoveryEnabledServer){
 	            DiscoveryEnabledServer dServer = (DiscoveryEnabledServer)server;	            
 	            InstanceInfo instanceInfo = dServer.getInstanceInfo();
-	            if (instanceInfo!=null){	                
-	                InstanceStatus status = instanceInfo.getStatus();
+	            if (instanceInfo!=null){
+					InstanceStatus status = instanceInfo.getStatus();
+					logger.debug("instance Info is {{}}:{{}}, status: {{}}", instanceInfo.getIPAddr(), instanceInfo.getPort(), status);
 	                if (status!=null){
 	                    isAlive = status.equals(InstanceStatus.UP);
 	                }
-	            }
+	            } else {
+	            	logger.debug("instanceInfo is not found: server is {{}}:{{}}", dServer.getHost(), dServer.getPort());
+				}
 	        }
 		    return isAlive;
 		}

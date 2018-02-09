@@ -118,6 +118,7 @@ public class EurekaNotificationServerListUpdater implements ServerListUpdater {
 
     @Override
     public synchronized void start(final UpdateAction updateAction) {
+        logger.debug("update Action {{}}", updateAction);
         if (isActive.compareAndSet(false, true)) {
             this.updateListener = new EurekaEventListener() {
                 @Override
@@ -127,12 +128,14 @@ public class EurekaNotificationServerListUpdater implements ServerListUpdater {
                             logger.info("an update action is already queued, returning as no-op");
                             return;
                         }
-
+                        logger.info("logger {{}}", event);
                         if (!refreshExecutor.isShutdown()) {
+                            logger.info("refresh executor is not shutdown");
                             try {
                                 refreshExecutor.submit(new Runnable() {
                                     @Override
                                     public void run() {
+                                        logger.info("run refresh executor");
                                         try {
                                             updateAction.doUpdate();
                                             lastUpdated.set(System.currentTimeMillis());

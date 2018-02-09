@@ -17,17 +17,14 @@
 */
 package com.netflix.loadbalancer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.netflix.client.config.CommonClientConfigKey;
-import com.netflix.client.config.DefaultClientConfigImpl;
 import com.netflix.client.config.IClientConfig;
-import com.netflix.config.DynamicPropertyFactory;
-import com.netflix.config.DynamicStringProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Utility class that can load the List of Servers from a Configuration (i.e
@@ -41,6 +38,7 @@ import com.netflix.config.DynamicStringProperty;
  * 
  */
 public class ConfigurationBasedServerList extends AbstractServerList<Server>  {
+	private static final Logger logger = LoggerFactory.getLogger(ConfigurationBasedServerList.class);
 
 	private IClientConfig clientConfig;
 		
@@ -51,6 +49,7 @@ public class ConfigurationBasedServerList extends AbstractServerList<Server>  {
 
 	@Override
 	public List<Server> getUpdatedListOfServers() {
+		logger.debug("call getUpdatedListOfServers");
         String listOfServers = clientConfig.get(CommonClientConfigKey.ListOfServers);
         return derive(listOfServers);
 	}
